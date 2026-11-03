@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Немецкое барокко | Обучающая игра</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'EB Garamond', serif;
+            background: linear-gradient(135deg, #faf6f0 0%, #f0ebe0 100%);
+            color: #3a2a1a;
+            overflow-x: hidden;
+            min-height: 100vh;
+            font-size: 19px;
+            line-height: 1.7;
+        }
+        .container { position: relative; z-index: 2; max-width: 1400px; margin: 0 auto; padding: 30px; }
+        .header {
+            text-align: center; margin-bottom: 50px; padding: 50px 20px;
+            background: linear-gradient(135deg, #fff9f0 0%, #f5edd6 100%);
+            border-radius: 20px; box-shadow: 0 10px 40px rgba(139, 90, 43, 0.15);
+            border: 3px solid #c9a96e;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif; font-size: 3.8rem;
+            font-weight: 700; color: #5c3a21; margin-bottom: 15px;
+            letter-spacing: 2px; font-style: italic;
+        }
+        .header .subtitle {
+            font-size: 1.6rem; color: #8b6f47; font-style: italic;
+            letter-spacing: 1px; font-family: 'Cormorant Garamond', serif;
+        }
+        .progress-container {
+            background: linear-gradient(135deg, #fff9f0 0%, #f5edd6 100%);
+            border: 3px solid #c9a96e; border-radius: 15px;
+            padding: 20px; margin-bottom: 40px;
+            box-shadow: 0 5px 20px rgba(139, 90, 43, 0.1);
+        }
+        .progress-label {
+            font-family: 'Cormorant Garamond', serif; color: #5c3a21;
+            margin-bottom: 12px; font-size: 1.3rem; font-weight: 600;
+        }
+        .progress-bar {
+            width: 100%; height: 25px; background: #e8dcc8;
+            border-radius: 12px; overflow: hidden; border: 2px solid #c9a96e;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #c9a96e, #b8956a, #a07840);
+            width: 0%; transition: width 0.5s ease;
+        }
+        .elements-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 25px; margin-bottom: 50px;
+        }
+        .element-btn {
+            background: linear-gradient(135deg, #fff9f0 0%, #f5edd6 100%);
+            border: 3px solid #c9a96e; border-radius: 15px; padding: 30px;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+            box-shadow: 0 5px 20px rgba(139, 90, 43, 0.15);
+        }
+        .element-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(139, 90, 43, 0.25);
+            border-color: #a07840;
+        }
+        .element-btn.visited {
+            border-color: #6b8e23 !important; border-width: 3px;
+            box-shadow: 0 0 15px rgba(107, 142, 35, 0.3);
+        }
+        .element-btn.visited::after {
+            content: '✓'; position: absolute; top: 10px; right: 15px;
+            color: #6b8e23; font-size: 2rem; font-weight: bold;
+        }
+        .element-btn h3 {
+            font-family: 'Playfair Display', serif; color: #5c3a21;
+            font-size: 1.5rem; margin-bottom: 12px; font-weight: 700;
+            font-style: italic;
+        }
+        .element-btn p {
+            color: #6b5a4a; font-size: 1.15rem; line-height: 1.5; font-style: italic;
+        }
+        .test-btn-container { text-align: center; margin: 50px 0; }
+        .test-btn {
+            background: linear-gradient(135deg, #c9a96e, #a07840);
+            border: none; border-radius: 50px; padding: 25px 70px;
+            font-family: 'Playfair Display', serif; font-size: 1.7rem;
+            font-weight: 700; color: #fff; cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(160, 120, 64, 0.3);
+            letter-spacing: 2px; font-style: italic;
+        }
+        .test-btn:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(160, 120, 64, 0.4); }
+        .test-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(58, 42, 26, 0.85);
+            z-index: 1000; overflow-y: auto;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content {
+            background: linear-gradient(135deg, #fff9f0 0%, #f5edd6 100%);
+            border: 4px solid #c9a96e; border-radius: 20px;
+            max-width: 950px; margin: 40px auto; padding: 50px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(139, 90, 43, 0.3);
+            animation: slideIn 0.5s ease;
+        }
+        @keyframes slideIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-content h2 {
+            font-family: 'Playfair Display', serif; color: #5c3a21;
+            font-size: 2.4rem; margin-bottom: 25px; font-weight: 700;
+            border-bottom: 3px solid #c9a96e; padding-bottom: 15px;
+            font-style: italic;
+        }
+        .modal-content h3 {
+            font-family: 'Cormorant Garamond', serif; color: #8b6f47;
+            font-size: 1.5rem; margin: 25px 0 15px 0; font-weight: 700;
+        }
+        .modal-content p { color: #3a2a1a; font-size: 1.2rem; line-height: 1.8; margin-bottom: 12px; }
+        .example-box {
+            background: rgba(201, 169, 110, 0.15);
+            border-left: 5px solid #c9a96e; padding: 18px;
+            margin: 18px 0; border-radius: 8px;
+        }
+        .error-box {
+            background: rgba(205, 92, 92, 0.1);
+            border-left: 5px solid #cd5c5c; padding: 18px;
+            margin: 18px 0; border-radius: 8px;
+        }
+        .info-box {
+            background: rgba(107, 142, 35, 0.1);
+            border-left: 5px solid #6b8e23; padding: 18px;
+            margin: 18px 0; border-radius: 8px;
+        }
+        .quote-box {
+            background: linear-gradient(135deg, rgba(201, 169, 110, 0.2), rgba(160, 120, 64, 0.1));
+            border-left: 5px solid #c9a96e; border-right: 5px solid #c9a96e;
+            padding: 25px; margin: 25px 0; border-radius: 10px;
+            text-align: center; font-style: italic;
+        }
+        .quote-text {
+            font-size: 1.3rem; color: #5c3a21; line-height: 1.8;
+            margin-bottom: 10px; font-family: 'Cormorant Garamond', serif;
+        }
+        .quote-author { font-size: 1.1rem; color: #8b6f47; font-weight: 600; }
+        .painting-frame, .painting-item {
+            background: #fff; border: 2px solid #c9a96e;
+            border-radius: 6px; padding: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin: 20px auto; max-width: 500px;
+        }
+        .paintings-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 20px; margin: 20px auto; max-width: 900px;
+        }
+        .painting-item { max-width: none; margin: 0; }
+        .painting-inner, .painting-item-inner {
+            background: transparent; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .painting-img, .painting-item img {
+            max-height: 400px; width: auto; max-width: 100%;
+            display: block; border-radius: 2px;
+        }
+        .painting-caption, .painting-item-caption {
+            text-align: center; font-style: italic; color: #3a2a1a;
+            margin-top: 10px; font-size: 1rem; font-weight: normal;
+            background: transparent; padding: 5px;
+        }
+        .painting-fallback {
+            width: 100%; min-height: 300px;
+            background: linear-gradient(135deg, #4a3a2a 0%, #6b5a4a 50%, #4a3a2a 100%);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 30px 20px; text-align: center; color: #f5edd6;
+            border-radius: 2px;
+        }
+        .painting-fallback-title {
+            font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;
+            color: #f5edd6; font-style: italic;
+        }
+        .painting-fallback-author { font-size: 1.1rem; color: #d4a574; margin-bottom: 15px; }
+        .painting-fallback-desc {
+            font-size: 0.95rem; color: #e8dcc8; line-height: 1.5;
+            max-width: 400px; font-style: italic;
+        }
+        .close-btn {
+            background: linear-gradient(135deg, #6b8e23, #556b2f);
+            border: none; border-radius: 30px; padding: 18px 50px;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.4rem;
+            font-weight: 700; color: #fff; cursor: pointer;
+            margin-top: 30px; transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(107, 142, 35, 0.3); letter-spacing: 1px;
+        }
+        .close-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(107, 142, 35, 0.4); }
+        .test-container {
+            display: none;
+            background: linear-gradient(135deg, #fff9f0 0%, #f5edd6 100%);
+            border: 4px solid #c9a96e; border-radius: 20px;
+            padding: 50px; max-width: 950px; margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(139, 90, 43, 0.2);
+        }
+        .timer {
+            position: fixed; top: 20px; right: 20px;
+            background: linear-gradient(135deg, #fff9f0, #f0e6d3);
+            border: 3px solid #c9a96e; border-radius: 15px;
+            padding: 18px 30px; font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem; color: #5c3a21; z-index: 100;
+            box-shadow: 0 5px 20px rgba(139, 90, 43, 0.2); font-weight: 600;
+        }
+        .question {
+            margin-bottom: 35px; padding: 25px;
+            background: rgba(255, 249, 240, 0.8);
+            border-radius: 12px; border: 2px solid #c9a96e;
+        }
+        .question-text {
+            font-size: 1.3rem; color: #3a2a1a;
+            margin-bottom: 18px; line-height: 1.8; font-weight: 600;
+        }
+        .answers { display: flex; flex-direction: column; gap: 12px; }
+        .answer-option {
+            background: rgba(255, 249, 240, 0.9);
+            border: 2px solid #c9a96e; border-radius: 10px;
+            padding: 18px; cursor: pointer; transition: all 0.3s ease;
+            color: #3a2a1a; font-size: 1.2rem; font-family: 'EB Garamond', serif;
+        }
+        .answer-option:hover { background: rgba(201, 169, 110, 0.2); transform: translateX(8px); }
+        .answer-option.selected { background: rgba(160, 120, 64, 0.2); border-color: #a07840; }
+        .answer-option.correct { background: rgba(107, 142, 35, 0.2); border-color: #6b8e23; }
+        .answer-option.incorrect { background: rgba(205, 92, 92, 0.2); border-color: #cd5c5c; }
+        .hint-btn {
+            background: rgba(201, 169, 110, 0.3);
+            border: 2px solid #c9a96e; border-radius: 25px;
+            padding: 10px 25px; color: #5c3a21; cursor: pointer;
+            font-size: 1.05rem; margin-top: 15px;
+            transition: all 0.3s ease; font-family: 'Cormorant Garamond', serif;
+        }
+        .hint-btn:hover { background: rgba(201, 169, 110, 0.5); }
+        .hint-text {
+            display: none; color: #6b5a4a; font-style: italic;
+            margin-top: 12px; padding: 15px;
+            background: rgba(201, 169, 110, 0.15); border-radius: 8px;
+        }
+        .submit-test-btn {
+            background: linear-gradient(135deg, #6b8e23, #556b2f);
+            border: none; border-radius: 30px; padding: 20px 60px;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.5rem;
+            font-weight: 700; color: #fff; cursor: pointer;
+            margin-top: 40px; transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(107, 142, 35, 0.3); letter-spacing: 1px;
+        }
+        .submit-test-btn:hover { transform: scale(1.05); box-shadow: 0 15px 40px rgba(107, 142, 35, 0.4); }
+        .results {
+            display: none; text-align: center; padding: 50px;
+            background: linear-gradient(135deg, #fff9f0 0%, #f5edd6 100%);
+            border: 4px solid #c9a96e; border-radius: 20px;
+            max-width: 850px; margin: 50px auto;
+            box-shadow: 0 20px 60px rgba(139, 90, 43, 0.2);
+        }
+        .results h2 {
+            font-family: 'Playfair Display', serif; font-size: 3rem;
+            margin-bottom: 25px; font-weight: 700; font-style: italic;
+        }
+        .results.success h2 { color: #6b8e23; }
+        .results.failure h2 { color: #a07840; }
+        .results p { font-size: 1.5rem; color: #3a2a1a; margin-bottom: 35px; }
+        .restart-btn {
+            background: linear-gradient(135deg, #c9a96e, #a07840);
+            border: none; border-radius: 30px; padding: 18px 50px;
+            font-family: 'Cormorant Garamond', serif; font-size: 1.4rem;
+            font-weight: 700; color: #fff; cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(160, 120, 64, 0.3);
+            margin: 12px; letter-spacing: 1px;
+        }
+        .restart-btn:hover { transform: scale(1.05); box-shadow: 0 10px 30px rgba(160, 120, 64, 0.4); }
+        .confetti {
+            position: fixed; width: 12px; height: 12px; top: -10px;
+            animation: confettiFall linear forwards; z-index: 9999;
+        }
+        @keyframes confettiFall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.5rem; }
+            .elements-grid { grid-template-columns: 1fr; }
+            .modal-content { margin: 20px; padding: 30px; }
+            .test-container { padding: 30px; }
+            .paintings-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Немецкое барокко</h1>
+            <div class="subtitle">Пахельбель · Телеман · Гендель · Вершина полифонии</div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-label">Прогресс изучения: <span id="progress-text">0/6</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+
+        <div class="elements-grid" id="elements-grid"></div>
+
+        <div class="test-btn-container">
+            <button class="test-btn" id="test-btn" disabled>Пройти тест</button>
+        </div>
+
+        <div class="test-container" id="test-container"></div>
+        <div class="results" id="results"></div>
+    </div>
+
+    <div class="timer" id="timer" style="display: none;">Время: <span id="timer-value">00:00</span></div>
+    <div class="modal" id="modal">
+        <div class="modal-content" id="modal-content"></div>
+    </div>
+
+    <script>
+        const elements = [
+            {
+                id: 1,
+                title: "Введение: Немецкое барокко",
+                shortDesc: "Полифония, глубина, великие мастера",
+                content: {
+                    definition: "Немецкое барокко — это вершина полифонического искусства. Немецкая музыка более драматичная и глубокая, не такая изысканная, как французская. В ней царит полифония — равноправие нескольких голосов. Немецкие композиторы создавали сложнейшие фуги, токкаты, хоралы и кантаты.",
+                    examples: [
+                        "Немецкое барокко дало миру великих композиторов: Иоганна Пахельбеля, Георга Филиппа Телемана, Георга Фридриха Генделя и, конечно, Иоганна Себастьяна Баха",
+                        "Главный инструмент немецкого барокко — орган. Сложные полифонические произведения (фуги, токкаты, хоральные прелюдии) писались в основном для органа",
+                        "Немецкие композиторы работали во всех жанрах: опера, оратория, кантата, сюита, концерт, соната. Особенно развиты были духовные жанры — хоралы, пассионы, оратории"
+                    ],
+                    quote: {
+                        text: "Парижу, Лондону и Риму знать пора,<br>Что немцы в музыке — над всеми мастера.",
+                        author: "Георг Филипп Телеман"
+                    },
+                    info: "Важно понять: немецкое барокко — это прежде всего полифония и глубина. В отличие от итальянского (мелодичность) и французского (изящество, украшения), немецкий стиль более драматичный и серьёзный.",
+                    errors: [
+                        "Ошибка: думать, что немецкое барокко похоже на французское. Немецкое — более драматичное и полифоническое, французское — более изысканное и декоративное",
+                        "Ошибка: считать, что в немецком барокко главное — мелодия. Главное здесь — полифония, равноправие голосов"
+                    ]
+                }
+            },
+            {
+                id: 2,
+                title: "Иоганн Пахельбель",
+                shortDesc: "Канон Ре мажор, учитель семьи Баха",
+                content: {
+                    definition: "Иоганн Пахельбель (1653–1706) — немецкий композитор, органист и преподаватель. Его жизнь была полна трудностей: из-за безденежья бросил университет, первая жена умерла вместе с сыном от чумы, часто переезжал из города в город (Нюрнберг — Вена — Эйзенах — Эрфурт — Штутгарт — Гота).",
+                    examples: [
+                        "Самое известное произведение Пахельбеля — Канон Ре мажор. Но самое ценное в его творчестве — сочинения для органа (их у него более 200): хоралы, хоральные прелюдии, токкаты, фуги, чаконы",
+                        "Пахельбель первым соединил в одном цикле фугу и предшествующую ей импровизационную прелюдию или токкату. Эта форма стала классической для органной музыки",
+                        "Интересно, что иногда он записывал свою музыку в старой («мензуральной») нотации, чтобы исполнители старшего поколения могли прочитать нотный текст",
+                        "Музыка Пахельбеля, как и музыка Баха, была надолго забыта, и лишь в 1930 году к ней начали проявлять интерес"
+                    ],
+                    painting: {
+                        title: "Иоганн Пахельбель",
+                        author: "Портрет эпохи барокко",
+                        description: "Иоганн Пахельбель (1653–1706) — немецкий композитор и органист.",
+                        url: "painting1"
+                    },
+                    info: "Важно понять: его связь с семьёй Баха — он был другом отца И.С. Баха и учителем его брата Иоганна Кристофа — показывает преемственность немецкой музыкальной традиции.",
+                    errors: [
+                        "Ошибка: думать, что Пахельбель известен только Каноном Ре мажор. У него более 200 сочинений для органа",
+                        "Ошибка: считать, что Пахельбель и Бах были современниками одного возраста. Пахельбель был старше и учил брата Баха",
+                        "Ошибка: путать канон и фугу. Канон — это строгое подражание, фуга — более свободная полифоническая форма"
+                    ]
+                }
+            },
+            {
+                id: 3,
+                title: "Георг Филипп Телеман",
+                shortDesc: "Самый продуктивный композитор в истории",
+                content: {
+                    definition: "Георг Филипп Телеман (1681–1767) — самый «продуктивный» композитор в истории музыки. Он написал больше сочинений, чем И.С. Бах и Г.Ф. Гендель вместе взятые (оба, кстати, были его друзьями). Только духовных кантат у него больше 1700 — по словам Генделя, «Телеман пишет церковную музыку так же быстро, как пишут письмо». Всего у него больше 3000 сочинений: 40 опер, 44 оратории, 27 пассионов, 600 сюит и множество других произведений.",
+                    examples: [
+                        "Телеман был почти самоучкой: мать не одобряла его занятий музыкой. Уроки игры на клавире он брал всего две недели, а потом занимался самостоятельно, тайком. Так же самостоятельно научился играть на всех музыкальных инструментах того времени",
+                        "Он основал первый немецкий музыкальный журнал, первый в Германии публичный концертный зал, создал оркестры в Лейпциге и Франкфурте. В Гамбурге был кантором пяти церквей одновременно",
+                        "Телеман мог заменить любого из музыкантов своего оркестра (и часто делал это, потому что на музыкантах экономили), и даже при необходимости спеть вокальную партию",
+                        "Его музыка не всегда глубока, но всегда интересна — особенно в звукоизобразительных моментах. Он передаёт звуками и кваканье лягушек, и походку хромого, и толкотню на бирже. В оркестровой сюите «Народы старинные и современные» показывает разницу характеров немцев, шведов, датчан, турок, швейцарцев, русских («московитян») и португальцев"
+                    ],
+                    painting: {
+                        title: "Георг Филипп Телеман",
+                        author: "Портрет эпохи барокко",
+                        description: "Георг Филипп Телеман (1681–1767) — самый продуктивный композитор в истории музыки.",
+                        url: "painting2"
+                    },
+                    quote: {
+                        text: "Люлли достоин славы, Корелли — лестных мнений,<br>Один лишь Телеман превыше всех хвалений!",
+                        author: "Критик Маттесон о Телемане"
+                    },
+                    info: "Важно понять: современники считали Телемана равным Генделю и превосходящим Баха. Его музыка всегда интересна, особенно в звукоизобразительных моментах. У него есть и «Симфония сверчков», и «Чаконa лилипутов» в сверхминиатюрном размере 3/32.",
+                    errors: [
+                        "Ошибка: считать, что Телеман был профессионально обученным музыкантом. Он был почти самоучкой",
+                        "Ошибка: путать количество сочинений Телемана и Баха. У Телемана больше 3000 сочинений — это огромное количество для одного композитора"
+                    ]
+                }
+            },
+            {
+                id: 4,
+                title: "Г.Ф. Гендель: биография",
+                shortDesc: "От Галле до Лондона, путь к славе",
+                content: {
+                    definition: "Георг Фридрих Гендель (1685–1759) родился в один год с И.С. Бахом и вместе с ним стал вершиной музыки барокко. Его жизнь и судьба действительно немного похожа на биографию «идолов» XX века. В отличие от скромного учителя Баха, не выезжавшего за пределы Германии, Гендель был богат, популярен, объездил чуть ли не всю Европу. Бах стал музыкантом «по наследству», продолжая семейную профессию (что, конечно, не умаляет его гениальности); Гендель, как и Телеман, пришлось бороться за право стать музыкантом.",
+                    examples: [
+                        "Отец Генделя — цирюльник и хирург по профессии — запретил сыну занятия музыкой. Но мальчик играл тайком, ночью, на чердаке. С 7 лет Гендель уже выступал как клавесинист при дворе Бранденбургского курфюрста в Берлине",
+                        "В отличие от большинства немецких композиторов, главным жанром для Генделя сразу стала опера. В 1703–1706 годах он работал в оркестре Гамбургского оперного театра — единственного в то время в Германии. Там были поставлены его первые 4 оперы в «итальянском» стиле",
+                        "Следующие четыре года композитор провёл в Италии в гостях у своего почитателя герцога Тосканского. Гендель посетил Флоренцию, Рим, Венецию, Неаполь, познакомился с ведущими композиторами Италии и прекрасно усвоил стиль итальянского оперного пения («бельканто»). Его опера «Агриппина», поставленная в 1709 году в Венеции, имела огромный успех",
+                        "Гендель стал настолько популярен, что ему предложили остаться в Италии при дворе Папы Римского. Но он предпочёл вернуться на родину, заняв должность капельмейстера при дворе ганноверского курфюрста Георга Первого. Однако в Ганновере не было оперного театра, и Гендель поехал в Лондон, где в 1711 году с огромным успехом состоялась премьера оперы «Ринальдо». Затем была вторая поездка и новые сочинения для английского двора, за которые королева пожаловала композитору звание придворного композитора и пожизненную пенсию"
+                    ],
+                    painting: {
+                        title: "Георг Фридрих Гендель",
+                        author: "Портрет 1720 года",
+                        description: "Георг Фридрих Гендель (1685–1759) — великий немецкий композитор, работавший в Англии.",
+                        url: "painting3"
+                    },
+                    info: "Важно понять: Гендель и Бах родились в один год (1685), но их судьбы сложились по-разному. Бах всю жизнь работал в Германии, Гендель объездил всю Европу и стал придворным композитором в Англии. Четыре главных города в жизни Генделя: Галле, Гамбург, Ганновер, Лондон.",
+                    errors: [
+                        "Ошибка: думать, что Гендель всю жизнь работал в Германии. Большую часть жизни он провёл в Англии",
+                        "Ошибка: считать, что отец Генделя поддерживал его музыкальные занятия. Наоборот, отец запрещал ему заниматься музыкой",
+                        "Ошибка: путать Генделя и Баха по биографии. Бах был «музыкантом по наследству», Гендель — самоучкой, пробившим себе путь"
+                    ]
+                }
+            },
+            {
+                id: 5,
+                title: "Гендель: оперы",
+                shortDesc: "Опера-seria, «Альцина», примадонны",
+                content: {
+                    definition: "С начала композиторского пути Гендель считал оперу своим главным жанром. В то время она была почти исключительно итальянской. Образцом осталась итальянская «опера-seria» (серьёзная опера), её стиль был самым законченным и совершенным. По иронии судьбы, лучшие сочинения этого жанра написал немец Гендель. Сюжеты опер-seria были достаточно условны: обычно показывали запутанную любовную интригу со счастливым концом, где действовали в основном короли и императоры, великие полководцы и рыцари, волшебники и волшебницы.",
+                    examples: [
+                        "В 1720 году Гендель стал директором «Королевской академии музыки», для которой написал большинство своих «итальянских» опер. Это были настоящие шедевры, но первоначальный успех у публики сменяется затем угасанием интереса к ним. Рост национального самосознания англичан отвергал «иностранный» музыкальный стиль, в 1728 году появилась даже пародия на итальянскую оперу: комедия «Опера нищих» Гея и Пепуша. В этом же году Академия Генделя была закрыта",
+                        "Но он продолжает борьбу за свой любимый жанр ещё почти десять лет, набрав в Италии новых певцов и написав для «Второй оперной академии» новые гениальные оперы (в частности, «Орландо» и «Альцина»). Увы, неблагодарная лондонская публика не оценила и их: в 1737 году, после постановки очередной пародии на Генделя, закрывается и Вторая Академия",
+                        "Опера «Альцина» — опера-сказка по поэме Ариосто «Неистовый Роланд». Волшебница Альцина — безобразная старуха, превращающая мужчин во что попало. Рыцарь Руджеро попадает на её остров, и Альцина влюбляется в него. Невеста Руджеро Брадаманте приезжает на остров переодетая в костюм своего брата Риччардо, чтобы вернуть жениха. В конце чары рассеиваются: остров опять становится пустыней, Альцина — старухой, рыцари — людьми, Руджеро и Брадаманте — мужем и женой",
+                        "Великолепная виртуозная ария «Tornami a vagheggiar» («Воротись, лаская взором») показывает счастье влюблённой женщины. Изначально это была ария Морганы, но примадонна Анна-Мария Страда упросила Генделя отдать эту арию ей. И сегодня блестящая ария чаще исполняется как ария Альцины"
+                    ],
+                    painting: {
+                        title: "Сцена из оперы «Альцина»",
+                        author: "Постановка эпохи барокко",
+                        description: "Опера «Альцина» — одна из самых известных опер Генделя, опера-сказка по поэме Ариосто.",
+                        url: "painting4"
+                    },
+                    info: "Важно понять: после закрытия Второй Академии в 1737 году Гендель тяжело заболел, а после выздоровления переключился на жанр оратории, который теперь считается главным в его музыке. Хотя сюжеты ораторий Генделя, в основном, взяты из Библии — англичане усматривали в историях древних израильтян, победивших всех врагов, картину торжества собственной страны.",
+                    errors: [
+                        "Ошибка: думать, что оперы Генделя всегда имели успех. На самом деле лондонская публика часто их не принимала",
+                        "Ошибка: путать оперу и ораторию Генделя. Оперы — итальянские, для солистов; оратории — на английском, с главенствующей ролью хора",
+                        "Ошибка: считать, что ария «Tornami a vagheggiar» всегда была арией Альцины. Изначально она была написана для Морганы"
+                    ]
+                }
+            },
+            {
+                id: 6,
+                title: "Гендель: оратории и инструментальная музыка",
+                shortDesc: "«Мессия», «Самсон», «Аллилуйя», концерто гроссо",
+                content: {
+                    definition: "Оратория — это жанр вокально-симфонической музыки для солистов, хора и оркестра. Когда она имеет литературный сюжет, развивающийся во времени, то превращается в аналог концертного исполнения оперы. Но, в отличие от оперы, главенствующую роль в оратории играют не солисты, а хор. У Генделя есть и бессюжетные лирические оратории («О радости, печали и мудрости»), и оратории-сказки («Семела»), идиллии («Сусанна»), пасторали («Ацис и Галатея»), утопии («Соломон»). Но наибольшую славу и признание современников композитору принесли оратории героико-патриотические, выражавшие национальный дух английского народа.",
+                    examples: [
+                        "Хор «Аллилуйя» из оратории «Мессия» вообще стал «визитной карточкой» композитора. Другой хор — энергичный ликующий «Sing unto God» (№60 из оратории «Иуда Маккавей») — часто звучал в СССР с новым текстом «Слава труду»",
+                        "В оратории «Самсон» главная тема — героический подвиг, самопожертвование во имя счастья своего народа. По библейской легенде, израильтяне успешно воюют с филистимлянами. Но жена героя — филистимлянка Далила — выведывает у него тайну его сказочной силы, заключённой в волосах, отрезает их у спящего Самсона и выдаёт его соплеменникам. Те ослепляют его, приковывают к колоннам своего храма. В итоге Бог вернул Самсону его силу, и он обрушил храм, похоронив под обломками и себя, и пирующих врагов",
+                        "К числу инструментальных шедевров Генделя относится цикл «12 концерто гроссо» ор. 6 для барочного оркестра. У Генделя этот жанр — прямой предшественник симфонии. Он почти так же глубок и совершенен; в чередовании его частей показаны не только разные психологические состояния, но и их «сюжетная» динамика",
+                        "«Музыка на воде» звучала во время военно-морского парада на Темзе: Гендель со своим оркестром находился на специальном плоту, мимо которого проходили корабли королевского флота, а Георг Первый со свитой — на берегу. Хотя звук по воде распространяется очень хорошо, Гендель всё же учёл большое расстояние и ввёл в партитуру много медных духовых инструментов с яркими «сигнальными» тембрами"
+                    ],
+                    painting: {
+                        title: "Георг Фридрих Гендель с партитурой «Мессии»",
+                        author: "Портрет эпохи барокко",
+                        description: "Гендель был не только композитором, но и выдающимся органистом. Даже ослепнув, он продолжал играть на органе.",
+                        url: "painting5"
+                    },
+                    quote: {
+                        text: "Концерт заключился хором Генделя. Кому из нас он потом не снился, как какое-то колоссальное, беспредельное торжество целого народа? Что за титаническая натура был этот Гендель!",
+                        author: "В.В. Стасов, русский критик"
+                    },
+                    info: "Важно понять: в конце жизни Гендель потерял зрение (в результате операции у врача-шарлатана в 1750 году), но несмотря на угнетённое состояние, в результате операции в исполнении своих ораторий, он продолжал участвовать последний раз — всего за 6 дней до кончины, играя партию органа. Наследие Генделя изучалось и публиковалось несколькими генделевскими обществами. Бетховен получил первое собрание его сочинений в 1827 году и назвал это «королевским подарком».",
+                    errors: [
+                        "Ошибка: думать, что в оратории главную роль играют солисты. В оратории главенствует хор",
+                        "Ошибка: путать «Мессию» и «Самсона». «Мессия» — о жизни Христа, «Самсон» — о библейском герое",
+                        "Ошибка: считать, что «Музыка на воде» исполнялась в концертном зале. Она звучала на реке Темзе во время королевского парада"
+                    ]
+                }
+            }
+        ];
+
+        const testQuestions = [
+            {
+                question: "Главный инструмент немецкого барокко — это ________.",
+                answers: ["скрипка", "орган", "клавесин"],
+                correct: 1,
+                hint: "На этом инструменте создавались сложнейшие полифонические произведения"
+            },
+            {
+                question: "Иоганн Пахельбель жил в годах ________.",
+                answers: ["1653-1706", "1685-1759", "1681-1767"],
+                correct: 0,
+                hint: "Он был старше Баха и Генделя"
+            },
+            {
+                question: "Самое известное произведение Пахельбеля — это ________.",
+                answers: ["фуга ре минор", "токката до мажор", "Канон Ре мажор"],
+                correct: 2,
+                hint: "Это произведение часто звучит на торжественных церемониях"
+            },
+            {
+                question: "Пахельбель был учителем ________.",
+                answers: ["самого И.С. Баха", "старшего брата И.С. Баха", "Генделя"],
+                correct: 1,
+                hint: "Он учил не самого Баха, а его родственника"
+            },
+            {
+                question: "Георг Филипп Телеман написал больше ________ сочинений.",
+                answers: ["1000", "3000", "2000"],
+                correct: 1,
+                hint: "Это больше, чем Бах и Гендель вместе взятые"
+            },
+            {
+                question: "Телеман умел играть на ________.",
+                answers: ["только на клавире", "только на органе", "всех музыкальных инструментах того времени"],
+                correct: 2,
+                hint: "Он был настоящим мультиинструменталистом"
+            },
+            {
+                question: "В оркестровой сюите «Народы старинные и современные» Телеман показывает разницу характеров ________.",
+                answers: ["только немцев и французов", "разных народов Европы", "только итальянцев"],
+                correct: 1,
+                hint: "В сюите представлены немцы, шведы, датчане, турки, русские и другие"
+            },
+            {
+                question: "Гендель и Бах родились в ________ году.",
+                answers: ["1700", "1653", "1685"],
+                correct: 2,
+                hint: "Это один и тот же год"
+            },
+            {
+                question: "Отец Генделя был ________.",
+                answers: ["музыкантом", "органистом", "цирюльником и хирургом"],
+                correct: 2,
+                hint: "Он запрещал сыну заниматься музыкой"
+            },
+            {
+                question: "В 1711 году в Лондоне с огромным успехом состоялась премьера оперы Генделя ________.",
+                answers: ["«Ринальдо»", "«Альцина»", "«Мессия»"],
+                correct: 0,
+                hint: "Это одна из первых опер Генделя в Англии"
+            },
+            {
+                question: "«Опера-seria» — это ________.",
+                answers: ["серьёзная итальянская опера", "комическая опера", "немецкая народная опера"],
+                correct: 0,
+                hint: "Этот стиль был образцом для всех композиторов Европы"
+            },
+            {
+                question: "Опера «Альцина» написана по поэме ________.",
+                answers: ["Шекспира «Буря»", "Ариосто «Неистовый Роланд»", "Данте «Божественная комедия»"],
+                correct: 1,
+                hint: "Это итальянская поэма о рыцарях"
+            },
+            {
+                question: "Хор «Аллилуйя» — из оратории Генделя ________.",
+                answers: ["«Мессия»", "«Самсон»", "«Иуда Маккавей»"],
+                correct: 0,
+                hint: "Это самая известная оратория Генделя"
+            },
+            {
+                question: "В оратории главенствующую роль играет ________.",
+                answers: ["солист", "оркестр", "хор"],
+                correct: 2,
+                hint: "В отличие от оперы, где главные — солисты"
+            },
+            {
+                question: "«Музыка на воде» звучала во время парада на реке ________.",
+                answers: ["Темза", "Сена", "Рейн"],
+                correct: 0,
+                hint: "Это главная река Лондона"
+            },
+            {
+                question: "В конце жизни Гендель ________.",
+                answers: ["вернулся в Германию", "перестал сочинять", "потерял зрение"],
+                correct: 2,
+                hint: "Это произошло после операции у врача-шарлатана"
+            }
+        ];
+
+        let visitedElements = new Set();
+        let timerInterval;
+        let seconds = 0;
+
+        function init() { renderElements(); updateProgress(); }
+
+        function renderElements() {
+            const grid = document.getElementById('elements-grid');
+            grid.innerHTML = '';
+            elements.forEach(el => {
+                const btn = document.createElement('div');
+                btn.className = 'element-btn';
+                btn.id = `element-${el.id}`;
+                if (visitedElements.has(el.id)) {
+                    btn.classList.add('visited');
+                }
+                btn.innerHTML = `<h3>${el.title}</h3><p>${el.shortDesc}</p>`;
+                btn.onclick = () => openCard(el);
+                grid.appendChild(btn);
+            });
+        }
+
+        function openCard(element) {
+            const modal = document.getElementById('modal');
+            const content = document.getElementById('modal-content');
+            
+            let infoHtml = element.content.info ? `<h3>Важно понять</h3><div class="info-box">${element.content.info}</div>` : '';
+            let quoteHtml = element.content.quote ? `<div class="quote-box"><div class="quote-text">${element.content.quote.text}</div><div class="quote-author">— ${element.content.quote.author}</div></div>` : '';
+            
+            let paintingsHtml = '';
+            if (element.content.paintings) {
+                paintingsHtml = `
+                    <div class="paintings-grid">
+                        ${element.content.paintings.map(p => `
+                            <div class="painting-item">
+                                <div class="painting-item-inner">
+                                    <img src="${p.url}.png" alt="${p.title}" onerror="this.onerror=null; this.src='${p.url}.jpg'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
+                                    <div class="painting-fallback" style="display:none;">
+                                        <div class="painting-fallback-title">${p.title}</div>
+                                        <div class="painting-fallback-author">${p.author}</div>
+                                        <div class="painting-fallback-desc">${p.description}</div>
+                                    </div>
+                                </div>
+                                <div class="painting-item-caption">${p.title} — ${p.author}</div>
+                            </div>
+                        `).join('')}
+                    </div>`;
+            } else if (element.content.painting) {
+                const p = element.content.painting;
+                paintingsHtml = `
+                    <div class="painting-frame">
+                        <div class="painting-inner">
+                            <img class="painting-img" src="${p.url}.png" alt="${p.title}" onerror="this.onerror=null; this.src='${p.url}.jpg'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
+                            <div class="painting-fallback" style="display:none;">
+                                <div class="painting-fallback-title">${p.title}</div>
+                                <div class="painting-fallback-author">${p.author}</div>
+                                <div class="painting-fallback-desc">${p.description}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="painting-caption">${p.title} — ${p.author}</div>`;
+            }
+            
+            content.innerHTML = `
+                <h2>${element.title}</h2>
+                ${paintingsHtml}
+                <h3>Что это такое?</h3><p>${element.content.definition}</p>
+                <h3>Примеры</h3>
+                ${element.content.examples.map(ex => `<div class="example-box">${ex}</div>`).join('')}
+                ${quoteHtml}${infoHtml}
+                <h3>Типичные ошибки</h3>
+                ${element.content.errors.map(err => `<div class="error-box">${err}</div>`).join('')}
+                <button class="close-btn" onclick="closeCard(${element.id})">Понял!</button>`;
+            
+            modal.style.display = 'block';
+            visitedElements.add(element.id);
+            const elBtn = document.getElementById(`element-${el.id}`);
+            if (elBtn) elBtn.classList.add('visited');
+            updateProgress();
+        }
+
+        function closeCard(elementId) {
+            document.getElementById('modal').style.display = 'none';
+            renderElements();
+            checkTestAvailability();
+        }
+
+        function updateProgress() {
+            const progress = visitedElements.size;
+            const total = elements.length;
+            document.getElementById('progress-text').textContent = `${progress}/${total}`;
+            document.getElementById('progress-fill').style.width = `${(progress / total) * 100}%`;
+        }
+
+        function checkTestAvailability() {
+            if (visitedElements.size === elements.length) {
+                document.getElementById('test-btn').disabled = false;
+            }
+        }
+
+        document.getElementById('test-btn').onclick = function() {
+            document.getElementById('elements-grid').style.display = 'none';
+            document.querySelector('.test-btn-container').style.display = 'none';
+            document.querySelector('.progress-container').style.display = 'none';
+            document.getElementById('test-container').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            startTimer();
+            renderTest();
+        };
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer-value').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function renderTest() {
+            const container = document.getElementById('test-container');
+            container.innerHTML = '<h2 style="font-family: Playfair Display; color: #5c3a21; margin-bottom: 35px; text-align: center; font-size: 2.4rem; border-bottom: 3px solid #c9a96e; padding-bottom: 15px; font-style: italic;">Тест: Немецкое барокко</h2>';
+            testQuestions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <div class="question-text"><strong>Вопрос ${index + 1}:</strong> ${q.question}</div>
+                    <div class="answers">
+                        ${q.answers.map((ans, ansIndex) => `<div class="answer-option" onclick="selectAnswer(${index}, ${ansIndex})">${ans}</div>`).join('')}
+                    </div>
+                    <button class="hint-btn" onclick="showHint(${index})">Подсказка</button>
+                    <div class="hint-text" id="hint-${index}">${q.hint}</div>`;
+                container.appendChild(questionDiv);
+            });
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'submit-test-btn';
+            submitBtn.textContent = 'Проверить ответы';
+            submitBtn.onclick = checkAnswers;
+            container.appendChild(submitBtn);
+        }
+
+        function selectAnswer(questionIndex, answerIndex) {
+            const question = document.querySelectorAll('.question')[questionIndex];
+            const options = question.querySelectorAll('.answer-option');
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[answerIndex].classList.add('selected');
+            options[answerIndex].dataset.selected = 'true';
+        }
+
+        function showHint(index) { document.getElementById(`hint-${index}`).style.display = 'block'; }
+
+        function checkAnswers() {
+            clearInterval(timerInterval);
+            let correct = 0;
+            const total = testQuestions.length;
+            let mistakesHtml = '';
+
+            testQuestions.forEach((q, index) => {
+                const question = document.querySelectorAll('.question')[index];
+                const options = question.querySelectorAll('.answer-option');
+                let selected = -1;
+
+                options.forEach((opt, optIndex) => {
+                    if (opt.dataset.selected === 'true') selected = optIndex;
+                    opt.onclick = null;
+                });
+
+                if (selected === q.correct) {
+                    correct++;
+                    options[selected].classList.add('correct');
+                } else {
+                    if (selected !== -1) options[selected].classList.add('incorrect');
+                    options[q.correct].classList.add('correct');
+                    
+                    const userAnswer = selected !== -1 ? q.answers[selected] : "Ответ не выбран";
+                    const rightAnswer = q.answers[q.correct];
+                    mistakesHtml += `
+                        <div style="margin-bottom: 15px; padding: 15px; background: rgba(255, 249, 240, 0.8); border-left: 4px solid #cd5c5c; border-radius: 8px; text-align: left;">
+                            <p style="font-weight: 600; margin-bottom: 8px; color: #3a2a1a;">Вопрос ${index + 1}: ${q.question}</p>
+                            <p style="color: #cd5c5c; margin-bottom: 4px;">❌ Ваш ответ: ${userAnswer}</p>
+                            <p style="color: #6b8e23; font-weight: 600;">✅ Правильный ответ: ${rightAnswer}</p>
+                        </div>`;
+                }
+            });
+
+            setTimeout(() => showResults(correct, total, mistakesHtml), 1500);
+        }
+
+        function showResults(correct, total, mistakesHtml) {
+            document.getElementById('test-container').style.display = 'none';
+            document.getElementById('timer').style.display = 'none';
+            const results = document.getElementById('results');
+            results.style.display = 'block';
+
+            let mistakesSection = '';
+            if (correct < total) {
+                mistakesSection = `
+                    <div style="margin-top: 30px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
+                        <h3 style="font-family: 'Playfair Display', serif; color: #cd5c5c; font-size: 1.5rem; margin-bottom: 15px; text-align: center;">Разбор ошибок:</h3>
+                        ${mistakesHtml}
+                    </div>`;
+            } else {
+                mistakesSection = `
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(107, 142, 35, 0.1); border-radius: 10px; color: #6b8e23; font-weight: 600;">
+                        🎉 Ошибок нет! Идеальный результат!
+                    </div>`;
+            }
+
+            if (correct === total) {
+                results.className = 'results success';
+                results.innerHTML = `
+                    <h2>Отлично!</h2>
+                    <p>Ты настоящий знаток немецкого барокко!</p>
+                    <p>Правильных ответов: ${correct} из ${total}</p>
+                    ${mistakesSection}
+                    <button class="restart-btn" onclick="restart()" style="margin-top: 25px;">Вернуться к карточкам</button>`;
+                createConfetti();
+            } else {
+                results.className = 'results failure';
+                results.innerHTML = `
+                    <h2>Почти получилось!</h2>
+                    <p>Правильных ответов: ${correct} из ${total}</p>
+                    ${mistakesSection}
+                    <button class="restart-btn" onclick="restart()" style="margin-top: 25px;">Вернуться к карточкам</button>
+                    <button class="restart-btn" onclick="retakeTest()">Пройти тест снова</button>`;
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#c9a96e', '#a07840', '#6b8e23', '#cd853f', '#8b7355'];
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                    document.body.appendChild(confetti);
+                    setTimeout(() => confetti.remove(), 5000);
+                }, i * 30);
+            }
+        }
+
+        function restart() {
+            visitedElements.clear();
+            seconds = 0;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('elements-grid').style.display = 'grid';
+            document.querySelector('.test-btn-container').style.display = 'block';
+            document.querySelector('.progress-container').style.display = 'block';
+            document.getElementById('test-btn').disabled = true;
+            renderElements();
+            updateProgress();
+        }
+
+        function retakeTest() {
+            seconds = 0;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('test-container').style.display = 'block';
+            document.getElementById('timer').style.display = 'block';
+            startTimer();
+            renderTest();
+        }
+
+        window.onclick = function(event) {
+            if (event.target === document.getElementById('modal')) {
+                document.getElementById('modal').style.display = 'none';
+                renderElements();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
