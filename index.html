@@ -49,7 +49,8 @@
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #c9a96e, #b8956a, #a07840);
-            width: 0%; transition: width 0.5s ease;
+            width: 0%;
+            transition: width 0.5s ease;
         }
         .elements-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -589,7 +590,10 @@
         let timerInterval;
         let seconds = 0;
 
-        function init() { renderElements(); updateProgress(); }
+        function init() {
+            renderElements();
+            updateProgress();
+        }
 
         function renderElements() {
             const grid = document.getElementById('elements-grid');
@@ -597,12 +601,12 @@
             elements.forEach(el => {
                 const btn = document.createElement('div');
                 btn.className = 'element-btn';
-                btn.id = `element-${el.id}`;
+                btn.id = 'element-' + el.id;
                 if (visitedElements.has(el.id)) {
                     btn.classList.add('visited');
                 }
-                btn.innerHTML = `<h3>${el.title}</h3><p>${el.shortDesc}</p>`;
-                btn.onclick = () => openCard(el);
+                btn.innerHTML = '<h3>' + el.title + '</h3><p>' + el.shortDesc + '</p>';
+                btn.onclick = function() { openCard(el); };
                 grid.appendChild(btn);
             });
         }
@@ -610,84 +614,56 @@
         function openCard(element) {
             const modal = document.getElementById('modal');
             const content = document.getElementById('modal-content');
-            
-            let infoHtml = element.content.info ? `<h3>Важно понять</h3><div class="info-box">${element.content.info}</div>` : '';
-            let quoteHtml = element.content.quote ? `<div class="quote-box"><div class="quote-text">${element.content.quote.text}</div><div class="quote-author">— ${element.content.quote.author}</div></div>` : '';
-            
+
+            let infoHtml = element.content.info ? '<h3>Важно понять</h3><div class="info-box">' + element.content.info + '</div>' : '';
+            let quoteHtml = element.content.quote ? '<div class="quote-box"><div class="quote-text">' + element.content.quote.text + '</div><div class="quote-author">— ' + element.content.quote.author + '</div></div>' : '';
+
             let paintingsHtml = '';
             if (element.content.paintings) {
-                paintingsHtml = `
-                    <div class="paintings-grid">
-                        ${element.content.paintings.map(p => `
-                            <div class="painting-item">
-                                <div class="painting-item-inner">
-                                    <img src="${p.url}.png" alt="${p.title}" onerror="this.onerror=null; this.src='${p.url}.jpg'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
-                                    <div class="painting-fallback" style="display:none;">
-                                        <div class="painting-fallback-title">${p.title}</div>
-                                        <div class="painting-fallback-author">${p.author}</div>
-                                        <div class="painting-fallback-desc">${p.description}</div>
-                                    </div>
-                                </div>
-                                <div class="painting-item-caption">${p.title} — ${p.author}</div>
-                            </div>
-                        `).join('')}
-                    </div>`;
+                paintingsHtml = '<div class="paintings-grid">';
+                element.content.paintings.forEach(function(p) {
+                    paintingsHtml += '<div class="painting-item"><div class="painting-item-inner"><img src="' + p.url + '.png" alt="' + p.title + '" onerror="this.onerror=null; this.src=\'' + p.url + '.jpg\'; this.onerror=function(){this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';}"><div class="painting-fallback" style="display:none;"><div class="painting-fallback-title">' + p.title + '</div><div class="painting-fallback-author">' + p.author + '</div><div class="painting-fallback-desc">' + p.description + '</div></div></div><div class="painting-item-caption">' + p.title + ' — ' + p.author + '</div></div>';
+                });
+                paintingsHtml += '</div>';
             } else if (element.content.painting) {
                 const p = element.content.painting;
-                paintingsHtml = `
-                    <div class="painting-frame">
-                        <div class="painting-inner">
-                            <img class="painting-img" src="${p.url}.png" alt="${p.title}" onerror="this.onerror=null; this.src='${p.url}.jpg'; this.onerror=function(){this.style.display='none'; this.nextElementSibling.style.display='flex';}">
-                            <div class="painting-fallback" style="display:none;">
-                                <div class="painting-fallback-title">${p.title}</div>
-                                <div class="painting-fallback-author">${p.author}</div>
-                                <div class="painting-fallback-desc">${p.description}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="painting-caption">${p.title} — ${p.author}</div>`;
+                paintingsHtml = '<div class="painting-frame"><div class="painting-inner"><img class="painting-img" src="' + p.url + '.png" alt="' + p.title + '" onerror="this.onerror=null; this.src=\'' + p.url + '.jpg\'; this.onerror=function(){this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';}"><div class="painting-fallback" style="display:none;"><div class="painting-fallback-title">' + p.title + '</div><div class="painting-fallback-author">' + p.author + '</div><div class="painting-fallback-desc">' + p.description + '</div></div></div></div><div class="painting-caption">' + p.title + ' — ' + p.author + '</div>';
             }
-            
-            content.innerHTML = `
-                <h2>${element.title}</h2>
-                ${paintingsHtml}
-                <h3>Что это такое?</h3><p>${element.content.definition}</p>
-                <h3>Примеры</h3>
-                ${element.content.examples.map(ex => `<div class="example-box">${ex}</div>`).join('')}
-                ${quoteHtml}${infoHtml}
-                <h3>Типичные ошибки</h3>
-                ${element.content.errors.map(err => `<div class="error-box">${err}</div>`).join('')}
-                <button class="close-btn" onclick="closeCard(${element.id})">Понял!</button>`;
-            
+
+            let examplesHtml = '';
+            element.content.examples.forEach(function(ex) {
+                examplesHtml += '<div class="example-box">' + ex + '</div>';
+            });
+
+            let errorsHtml = '';
+            element.content.errors.forEach(function(err) {
+                errorsHtml += '<div class="error-box">' + err + '</div>';
+            });
+
+            content.innerHTML = '<h2>' + element.title + '</h2>' + paintingsHtml + '<h3>Что это такое?</h3><p>' + element.content.definition + '</p><h3>Примеры</h3>' + examplesHtml + quoteHtml + infoHtml + '<h3>Типичные ошибки</h3>' + errorsHtml + '<button class="close-btn" onclick="closeCard(' + element.id + ')">Понял!</button>';
+
             modal.style.display = 'block';
             visitedElements.add(element.id);
-            const elBtn = document.getElementById(`element-${el.id}`);
-            if (elBtn) elBtn.classList.add('visited');
             updateProgress();
+            renderElements();
+            checkTestAvailability();
         }
 
         function closeCard(elementId) {
-    document.getElementById('modal').style.display = 'none';
-    renderElements();
-    updateProgress();
-    checkTestAvailability();
-}
+            document.getElementById('modal').style.display = 'none';
+            updateProgress();
+            renderElements();
+            checkTestAvailability();
+        }
 
-function updateProgress() {
-    const progress = visitedElements.size;
-    const total = elements.length;
-    const progressText = document.getElementById('progress-text');
-    const progressFill = document.getElementById('progress-fill');
-    
-    if (progressText) {
-        progressText.textContent = `${progress}/${total}`;
-    }
-    if (progressFill) {
-        progressFill.style.width = `${(progress / total) * 100}%`;
-    }
-    
-    console.log('Прогресс:', progress, 'из', total);
-}
+        function updateProgress() {
+            const progress = visitedElements.size;
+            const total = elements.length;
+            const percent = (progress / total) * 100;
+            
+            document.getElementById('progress-text').textContent = progress + '/' + total;
+            document.getElementById('progress-fill').style.width = percent + '%';
+        }
 
         function checkTestAvailability() {
             if (visitedElements.size === elements.length) {
@@ -706,27 +682,25 @@ function updateProgress() {
         };
 
         function startTimer() {
-            timerInterval = setInterval(() => {
+            timerInterval = setInterval(function() {
                 seconds++;
                 const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
                 const secs = (seconds % 60).toString().padStart(2, '0');
-                document.getElementById('timer-value').textContent = `${mins}:${secs}`;
+                document.getElementById('timer-value').textContent = mins + ':' + secs;
             }, 1000);
         }
 
         function renderTest() {
             const container = document.getElementById('test-container');
             container.innerHTML = '<h2 style="font-family: Playfair Display; color: #5c3a21; margin-bottom: 35px; text-align: center; font-size: 2.4rem; border-bottom: 3px solid #c9a96e; padding-bottom: 15px; font-style: italic;">Тест: Немецкое барокко</h2>';
-            testQuestions.forEach((q, index) => {
+            testQuestions.forEach(function(q, index) {
                 const questionDiv = document.createElement('div');
                 questionDiv.className = 'question';
-                questionDiv.innerHTML = `
-                    <div class="question-text"><strong>Вопрос ${index + 1}:</strong> ${q.question}</div>
-                    <div class="answers">
-                        ${q.answers.map((ans, ansIndex) => `<div class="answer-option" onclick="selectAnswer(${index}, ${ansIndex})">${ans}</div>`).join('')}
-                    </div>
-                    <button class="hint-btn" onclick="showHint(${index})">Подсказка</button>
-                    <div class="hint-text" id="hint-${index}">${q.hint}</div>`;
+                let answersHtml = '';
+                q.answers.forEach(function(ans, ansIndex) {
+                    answersHtml += '<div class="answer-option" onclick="selectAnswer(' + index + ', ' + ansIndex + ')">' + ans + '</div>';
+                });
+                questionDiv.innerHTML = '<div class="question-text"><strong>Вопрос ' + (index + 1) + ':</strong> ' + q.question + '</div><div class="answers">' + answersHtml + '</div><button class="hint-btn" onclick="showHint(' + index + ')">Подсказка</button><div class="hint-text" id="hint-' + index + '">' + q.hint + '</div>';
                 container.appendChild(questionDiv);
             });
             const submitBtn = document.createElement('button');
@@ -739,12 +713,14 @@ function updateProgress() {
         function selectAnswer(questionIndex, answerIndex) {
             const question = document.querySelectorAll('.question')[questionIndex];
             const options = question.querySelectorAll('.answer-option');
-            options.forEach(opt => opt.classList.remove('selected'));
+            options.forEach(function(opt) { opt.classList.remove('selected'); });
             options[answerIndex].classList.add('selected');
             options[answerIndex].dataset.selected = 'true';
         }
 
-        function showHint(index) { document.getElementById(`hint-${index}`).style.display = 'block'; }
+        function showHint(index) {
+            document.getElementById('hint-' + index).style.display = 'block';
+        }
 
         function checkAnswers() {
             clearInterval(timerInterval);
@@ -752,12 +728,12 @@ function updateProgress() {
             const total = testQuestions.length;
             let mistakesHtml = '';
 
-            testQuestions.forEach((q, index) => {
+            testQuestions.forEach(function(q, index) {
                 const question = document.querySelectorAll('.question')[index];
                 const options = question.querySelectorAll('.answer-option');
                 let selected = -1;
 
-                options.forEach((opt, optIndex) => {
+                options.forEach(function(opt, optIndex) {
                     if (opt.dataset.selected === 'true') selected = optIndex;
                     opt.onclick = null;
                 });
@@ -768,19 +744,14 @@ function updateProgress() {
                 } else {
                     if (selected !== -1) options[selected].classList.add('incorrect');
                     options[q.correct].classList.add('correct');
-                    
+
                     const userAnswer = selected !== -1 ? q.answers[selected] : "Ответ не выбран";
                     const rightAnswer = q.answers[q.correct];
-                    mistakesHtml += `
-                        <div style="margin-bottom: 15px; padding: 15px; background: rgba(255, 249, 240, 0.8); border-left: 4px solid #cd5c5c; border-radius: 8px; text-align: left;">
-                            <p style="font-weight: 600; margin-bottom: 8px; color: #3a2a1a;">Вопрос ${index + 1}: ${q.question}</p>
-                            <p style="color: #cd5c5c; margin-bottom: 4px;">❌ Ваш ответ: ${userAnswer}</p>
-                            <p style="color: #6b8e23; font-weight: 600;">✅ Правильный ответ: ${rightAnswer}</p>
-                        </div>`;
+                    mistakesHtml += '<div style="margin-bottom: 15px; padding: 15px; background: rgba(255, 249, 240, 0.8); border-left: 4px solid #cd5c5c; border-radius: 8px; text-align: left;"><p style="font-weight: 600; margin-bottom: 8px; color: #3a2a1a;">Вопрос ' + (index + 1) + ': ' + q.question + '</p><p style="color: #cd5c5c; margin-bottom: 4px;">❌ Ваш ответ: ' + userAnswer + '</p><p style="color: #6b8e23; font-weight: 600;">✅ Правильный ответ: ' + rightAnswer + '</p></div>';
                 }
             });
 
-            setTimeout(() => showResults(correct, total, mistakesHtml), 1500);
+            setTimeout(function() { showResults(correct, total, mistakesHtml); }, 1500);
         }
 
         function showResults(correct, total, mistakesHtml) {
@@ -791,49 +762,32 @@ function updateProgress() {
 
             let mistakesSection = '';
             if (correct < total) {
-                mistakesSection = `
-                    <div style="margin-top: 30px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;">
-                        <h3 style="font-family: 'Playfair Display', serif; color: #cd5c5c; font-size: 1.5rem; margin-bottom: 15px; text-align: center;">Разбор ошибок:</h3>
-                        ${mistakesHtml}
-                    </div>`;
+                mistakesSection = '<div style="margin-top: 30px; text-align: left; max-width: 800px; margin-left: auto; margin-right: auto;"><h3 style="font-family: \'Playfair Display\', serif; color: #cd5c5c; font-size: 1.5rem; margin-bottom: 15px; text-align: center;">Разбор ошибок:</h3>' + mistakesHtml + '</div>';
             } else {
-                mistakesSection = `
-                    <div style="margin-top: 20px; padding: 15px; background: rgba(107, 142, 35, 0.1); border-radius: 10px; color: #6b8e23; font-weight: 600;">
-                        🎉 Ошибок нет! Идеальный результат!
-                    </div>`;
+                mistakesSection = '<div style="margin-top: 20px; padding: 15px; background: rgba(107, 142, 35, 0.1); border-radius: 10px; color: #6b8e23; font-weight: 600;">🎉 Ошибок нет! Идеальный результат!</div>';
             }
 
             if (correct === total) {
                 results.className = 'results success';
-                results.innerHTML = `
-                    <h2>Отлично!</h2>
-                    <p>Ты настоящий знаток немецкого барокко!</p>
-                    <p>Правильных ответов: ${correct} из ${total}</p>
-                    ${mistakesSection}
-                    <button class="restart-btn" onclick="restart()" style="margin-top: 25px;">Вернуться к карточкам</button>`;
+                results.innerHTML = '<h2>Отлично!</h2><p>Ты настоящий знаток немецкого барокко!</p><p>Правильных ответов: ' + correct + ' из ' + total + '</p>' + mistakesSection + '<button class="restart-btn" onclick="restart()" style="margin-top: 25px;">Вернуться к карточкам</button>';
                 createConfetti();
             } else {
                 results.className = 'results failure';
-                results.innerHTML = `
-                    <h2>Почти получилось!</h2>
-                    <p>Правильных ответов: ${correct} из ${total}</p>
-                    ${mistakesSection}
-                    <button class="restart-btn" onclick="restart()" style="margin-top: 25px;">Вернуться к карточкам</button>
-                    <button class="restart-btn" onclick="retakeTest()">Пройти тест снова</button>`;
+                results.innerHTML = '<h2>Почти получилось!</h2><p>Правильных ответов: ' + correct + ' из ' + total + '</p>' + mistakesSection + '<button class="restart-btn" onclick="restart()" style="margin-top: 25px;">Вернуться к карточкам</button><button class="restart-btn" onclick="retakeTest()">Пройти тест снова</button>';
             }
         }
 
         function createConfetti() {
             const colors = ['#c9a96e', '#a07840', '#6b8e23', '#cd853f', '#8b7355'];
             for (let i = 0; i < 100; i++) {
-                setTimeout(() => {
+                setTimeout(function() {
                     const confetti = document.createElement('div');
                     confetti.className = 'confetti';
                     confetti.style.left = Math.random() * 100 + 'vw';
                     confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
                     confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
                     document.body.appendChild(confetti);
-                    setTimeout(() => confetti.remove(), 5000);
+                    setTimeout(function() { confetti.remove(); }, 5000);
                 }, i * 30);
             }
         }
@@ -862,9 +816,10 @@ function updateProgress() {
         window.onclick = function(event) {
             if (event.target === document.getElementById('modal')) {
                 document.getElementById('modal').style.display = 'none';
+                updateProgress();
                 renderElements();
             }
-        }
+        };
 
         init();
     </script>
