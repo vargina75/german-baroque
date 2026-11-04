@@ -667,18 +667,27 @@
         }
 
         function closeCard(elementId) {
-            document.getElementById('modal').style.display = 'none';
-            renderElements();
-            updateProgress);  
-            checkTestAvailability();
-        }
+    document.getElementById('modal').style.display = 'none';
+    renderElements();
+    updateProgress();
+    checkTestAvailability();
+}
 
-        function updateProgress() {
-            const progress = visitedElements.size;
-            const total = elements.length;
-            document.getElementById('progress-text').textContent = `${progress}/${total}`;
-            document.getElementById('progress-fill').style.width = `${(progress / total) * 100}%`;
-        }
+function updateProgress() {
+    const progress = visitedElements.size;
+    const total = elements.length;
+    const progressText = document.getElementById('progress-text');
+    const progressFill = document.getElementById('progress-fill');
+    
+    if (progressText) {
+        progressText.textContent = `${progress}/${total}`;
+    }
+    if (progressFill) {
+        progressFill.style.width = `${(progress / total) * 100}%`;
+    }
+    
+    console.log('Прогресс:', progress, 'из', total);
+}
 
         function checkTestAvailability() {
             if (visitedElements.size === elements.length) {
